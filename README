@@ -1,0 +1,146 @@
+Tema contine 3 fisiere sursa:
+- main.c care cuprinde programul principal
+- functii.c cuprinde functiile ce vor fi apelate in tema
+- TSructuri.h in care sunt definite structurile ce vor fi folosite in program, prototipul functiilor si al 
+pointerilor la functii.Structurile folosite in program sunt:
+	>TNod care joaca rolul nodurilor din trie si contine 2 campuri:terminat (un intreg care retine daca
+	nodul este sau nu final de cuvant )(daca terminat e 1, in acel nod se termina un cuvant iar daca termi-
+	nat e 0, nu se termina niciun cuvant) si un pinter catre o lista, in care sunt retinute alfabetic
+	caile care pleaca din acel nod
+	>TCelula joaca rolul caii dintre 2 noduri si are trei campuri: caracterul corespunzator literei urmatoa-
+	re din cuvant, un pointer corespunzator nodului accesat in cazul in care caracterul urmator este cel
+	din celula (struct nod *copil) si un pointer catre urmatoarea celula (care va avea codul ASCII al
+	caracterului din aceasta cel mai apropiat de cel al caracterului din celula precedenta deoarece celu-
+	lele se vor insera ordonat) (struct celula *urm)
+Trie-ul se initializeaza cu funcia TArb InitArb() care aloca nodul radacina.
+Implementarea functiilor cerute:
+1) add
+	In cazul in care operatia citita este "add", se va citi cuvantul de adugat si se va insera in arborele
+a cu ajutorul functiei add (add(&a,word)):
+	*)int add(TArb *a,char *word)
+	-pentru fiecare caracter al cuvantului word, functia insereaza o celula ce contine caracterul, apeland
+	functia de inserare ordonata intr-o lista InsertOLista(InsertOLista(&(*a)->cale,word[i]))
+		*)TLista InsertOLista(ALista l,char ae)
+		-primeste ca parametri lista l in care se insereaza si caracterul ae care se va insera in celula
+		-parcurge toate celulele din lista cat timp acesta e <ae (cum lista e ordonata, caracterele se
+		afla in ordine crescatoare)
+		-daca elementul la care functia s-a oprit are chiar elementul ae, functia intoarce pointerul 
+		catre acea celula (celula se afla deja in lista si nu se mai aloca)
+		-in caz contrar, se aloca o noua celula in pozitia in care s-a ajuns in lista, se refac 
+		legaturile si se intoarce un pointer catre ea
+		-alocarea celulei se face cu ajutorul functiei: *)TLista AlocCelula(char ae)
+	-se verifica daca celula care contine caracterul are campul copil!=NULL, iar in caz contrar se va aloca
+	un nod in campul copil al celulei, apeland functia: *)TArb AlocNod()
+	-se trece pe acest nou nod iar algoritmul se repeta
+	-cand se ajunge la ultima litera din cuvant, nodul pe care s-a ajuns se marcheaza ca terminat
+	(if(i==strlen(word)-1) (*nod)->terminat=1)
+2)remove
+	In cazul in care operatia citita este "remove", se va citi cuvantul de eliminat si se va elimina din 
+arborele a cu ajutorul functiei remove (Remove(&a,word,0)):
+	*)int Remove(TArb *a,char *word,int i)
+	-primeste ca parametri un pointer a la nod, cuvantul de eliminat si pozitia la care s-a ajuns in acesta
+	-daca s-a ajuns pe ultima pozitie din cuvant, nodul la care s-a ajuns nu va mai fi marcat
+	-se cauta in lista corespunzatoare nodului a pana cand se gaseste caracterul word[i] iar daca nu se
+	gaseste, functia intoarce 0
+	-se apeleaza functia pentru copilul de pe calea gasita, pentru pozitia urmatoare in cuvant 
+	(Remove(nod,word,i+1)) iar daca aceasta intoarce 0, functia principala intoarce si ea 0
+	-daca nodul este frunza (nu mai are nicio celula in lista) si nu este marcat ca terminat
+	(if(!(*nod)->cale&&(*nod)->terminat==0)) se sterge nodul si celula care puncteaza spre acesta
+3)find
+	In cazul in care operatia citita este "find", se va citi cuvantul cautat si se va analiza rezultatul
+apelului functiei find (if(find(&a,word)) fprintf(fout,"True\n");
+                        else fprintf(fout,"False\n");)
+	*)int find(TArb *a,char *word)
+	-primeste ca parametri un pointer a catre nod si cuvantul cautat word
+	-pentru fiecare caracter din cuvant se cauta in lista asociata nodului pana cand se gaseste celula
+	care contine caracterul iar daca nu se gaseste functia intoarce 0
+	-a se muta pe nodul indicat de celula gasita
+	-daca toate literele din cuvant se afla in trie in aceasta ordine, se verifica daca nodul la care
+	s-a ajuns este terminat, caz in care cuvantul a fost gasit si functia intoarce 1
+4)find_longest_prefix
+	In cazul in care operatia citita este "find_longest_prefix", se va citi cuvantul cautat si se va apela
+functia find_longest_prefix:
+	*)void find_longest_prefix(TArb *a,char *word,FILE *fout)
+	-pentru fiecare caracter din cuvant se cauta in lista asociata nodului pana cand se gaseste celula
+        care contine caracterul iar daca nu se gaseste, in cazul in care nu se gaseste prima litera din cuvant
+	afiseaza "None",sau altfel se iese din bucla
+	-daca caracterul este gasit, se afiseaza caracterul
+	-a devine copilul celulei gasite si se trece pe urmatoarea pozitie in cuvant
+5)find_all_with_prefix
+	In cazul in care operatia citita este "find_all_with_prefix", se va citi cuvantul prefix si se va apela
+functia find_all_with_prefix (find_all_with_prefix(&a,word,fout)):
+	*)void find_all_with_prefix(TArb *a,char *word,FILE *fout)
+	-primeste ca parametri nodul a (de tip TArb*),prefixul word si pointerul catre fisierul de iesire
+	-pentru fiecare caracter din cuvantul word se cauta in lista corespunzatoare nodului a pana cand se
+	gaseste o celula care sa-l contina 
+	-in cazul in care un caracter nu este gasit se afiseaza "None"
+	-a devine copilul celulei gasite si se trece pe urmatoarea pozitie in cuvant
+	-daca s-a gasit prefixul in cuvant, se apeleaza functia recursiva listare (listare(a,fout,word)):
+		*)void listare(TArb *a,FILE *fout,char *word)
+		-primeste ca parametri nodul in care s-a ajuns, un pointer catre fisierul de iesire si cuvantul
+		citit si afiseaza toate cuvintele de sub nodul a
+		-daca nodul este terminat se afiseaza cuvantul word
+		-pentru fiecare din celulele nodului a, se aloca un nou cuvant ce primeste alaturi de vechiul
+		cuvant caracterul din celula si se apeleaza recursiv functia listare pentru care a e copilul
+		celulei la care s-a ajuns iar word e noul cuvant alocat (listare(nod,fout,cuvant))
+6)mean_length
+	In cazul in care operatia citita este "mean_length", se va citi cuvantul prefix si se va apela functia 
+mean_length (mean_length(&a,word,fout)):
+	*)void mean_length(TArb *a,char *word,FILE *fout)
+	-primeste ca parametri nodul a, prefixul word si pointerul catre fisierul de iesire
+	-pentru fiecare caracter din cuvantul word se cauta in lista corespunzatoare nodului a pana cand se
+        gaseste o celula care sa-l contina
+        -in cazul in care un caracter nu este gasit se afiseaza "0"
+        -a devine copilul celulei gasite si se trece pe urmatoarea pozitie in cuvant
+        -daca s-a gasit prefixul in cuvant, se apeleaza functia suma_lungime (suma_lungime(a,&nr,word))
+		*)int suma_lungime(TArb *a,int *nr,char *word)
+		-primeste ca parametri nodul in care s-a ajuns, un pointer catre numarul de cuvinte, si cuvantul
+                citit si determina numarul si suma lungimilor tuturor cuvintelor de sub nodul a
+                -daca nodul este terminat se adauga lungimea cuvantului la rezultatul functiei si creste numa-
+		rul de cuvinte (suma+=strlen(word);
+                                (*nr)++;)
+                -pentru fiecare din celulele nodului a, se aloca un nou cuvant ce primeste alaturi de vechiul
+                cuvant caracterul din celula si se adauga la rezultat prin apel recursiv suma_lungime pentru 
+		care a e copilul celulei la care s-a ajuns iar word e noul cuvant alocat 
+		(suma_lungime(nod,nr,cuvant))
+
+La finalul programului pentru eliberare trie-ului am apelat:ElibArb(&a), pentru care am folosit functiile:
+	*)void ElibArb(TArb *a)
+	*)void ElibNod(TArb nod)
+	*)void ElibLista(TLista l)
+
+                           = Tema 3 Trie tree =
+
+[test0.out]...........................................passed  [08/85]
+[VALGRIND: test0.out].................................passed  [02/85]
+
+[test1.out]...........................................passed  [08/85]
+[VALGRIND: test1.out].................................passed  [02/85]
+
+[test2.out]...........................................passed  [08/85]
+[VALGRIND: test2.out].................................passed  [02/85]
+
+[test3.out]...........................................passed  [08/85]
+[VALGRIND: test3.out].................................passed  [02/85]
+
+[test4.out]...........................................passed  [08/85]
+[VALGRIND: test4.out].................................passed  [02/85]
+
+[test5.out]...........................................passed  [08/85]
+[VALGRIND: test5.out].................................passed  [02/85]
+
+[test6.out]...........................................passed  [08/85]
+[VALGRIND: test6.out].................................passed  [02/85]
+
+[test7.out]...........................................passed  [08/85]
+[VALGRIND: test7.out].................................passed  [02/85]
+
+[test8.out]...........................................passed  [08/85]
+[VALGRIND: test8.out].................................passed  [02/85]
+
+[test9.out]...........................................passed  [13/85]
+[VALGRIND: test9.out].................................passed  [02/85]
+
+
+                                           Total: [105/85]
+
